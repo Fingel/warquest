@@ -1,39 +1,64 @@
 use crossterm::{
-    cursor::{self, DisableBlinking, Hide, Show},
-    queue,
-    style::{self, Color, SetBackgroundColor, Stylize},
-    terminal::{self, Clear, EnterAlternateScreen},
-    ExecutableCommand, QueueableCommand,
+    cursor::{Hide, MoveTo, Show},
+    event, execute,
+    style::{Color, Print, SetBackgroundColor, SetForegroundColor},
+    terminal::{
+        disable_raw_mode, enable_raw_mode, size, Clear, ClearType, EnterAlternateScreen,
+        LeaveAlternateScreen, ScrollUp, SetSize,
+    },
 };
-use std::{
-    io::{self, stdout, Write},
-    thread::sleep,
-    time::Duration,
-};
+use std::io::{self};
 
-fn main() -> io::Result<()> {
-    let mut stdout = stdout();
-    stdout.execute(terminal::Clear(terminal::ClearType::All))?;
-    stdout.execute(EnterAlternateScreen)?;
-    let width = 120;
-    let height = 30;
-
-    for y in 0..height {
-        for x in 0..width {
-            stdout
-                .queue(cursor::MoveTo(x, y))?
-                .queue(style::PrintStyledContent("█".black()))?;
-        }
-    }
-    queue!(
-        stdout,
-        cursor::MoveTo(width / 2, height / 2),
+fn setup() -> io::Result<()> {
+    enable_raw_mode()?;
+    let (cols, rows) = size()?;
+    execute!(
+        io::stdout(),
+        EnterAlternateScreen,
+        SetSize(cols, rows),
+        SetForegroundColor(Color::White),
         SetBackgroundColor(Color::Black),
-        style::PrintStyledContent("WarQuest".red().bold()),
+        ScrollUp(rows),
+        MoveTo(cols / 2, rows / 2),
+        Print("@"),
         Hide,
     )?;
-    stdout.flush()?;
-    stdout.execute(terminal::Clear(terminal::ClearType::All))?;
-    stdout.execute(Show)?;
+    Ok(())
+}
+
+fn cleanup() -> io::Result<()> {
+    let (cols, rows) = size()?;
+    execute!(
+        io::stdout(),
+        LeaveAlternateScreen,
+        SetSize(cols, rows),
+        Show
+    )?;
+    disable_raw_mode()?;
+    Ok(())
+}
+
+fn main() -> io::Result<()> {
+    setup()?;
+    loop {
+        let event = event::read()?;
+        if let event::Event::Key(event) = event {
+            match event.code {
+                event::KeyCode::Esc => break,
+                event::KeyCode::Up => {
+                    execute!(
+                        io::stdout(),
+                        Clear(ClearType::All),
+                        MoveTo(10, 10),
+                        Print("@")
+                    )?;
+                }
+                _ => {}
+            }
+        }
+    }
+
+    // Be a good citizen, cleanup
+    cleanup()?;
     Ok(())
 }
