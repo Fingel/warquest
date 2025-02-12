@@ -7,7 +7,7 @@ use crossterm::{
         LeaveAlternateScreen, ScrollUp, SetSize,
     },
 };
-use std::io::{self};
+use std::io::{stdout, Result};
 
 struct Coord {
     x: u16,
@@ -19,11 +19,11 @@ struct Size {
     height: u16,
 }
 
-fn setup() -> io::Result<Size> {
+fn setup() -> Result<Size> {
     enable_raw_mode()?;
     let (cols, rows) = size()?;
     execute!(
-        io::stdout(),
+        stdout(),
         EnterAlternateScreen,
         SetSize(cols, rows),
         SetForegroundColor(Color::White),
@@ -37,14 +37,9 @@ fn setup() -> io::Result<Size> {
     })
 }
 
-fn cleanup() -> io::Result<()> {
+fn cleanup() -> Result<()> {
     let (cols, rows) = size()?;
-    execute!(
-        io::stdout(),
-        LeaveAlternateScreen,
-        SetSize(cols, rows),
-        Show
-    )?;
+    execute!(stdout(), LeaveAlternateScreen, SetSize(cols, rows), Show)?;
     disable_raw_mode()?;
     Ok(())
 }
@@ -64,9 +59,9 @@ impl AppData {
     }
 }
 
-fn render(app_data: &AppData) -> io::Result<()> {
+fn render(app_data: &AppData) -> Result<()> {
     execute!(
-        io::stdout(),
+        stdout(),
         Clear(ClearType::All),
         MoveTo(app_data.player_coord.x, app_data.player_coord.y),
         Print("@")
@@ -74,7 +69,7 @@ fn render(app_data: &AppData) -> io::Result<()> {
     Ok(())
 }
 
-fn main() -> io::Result<()> {
+fn main() -> Result<()> {
     let size = setup()?;
     let mut app_data = AppData::new(size.width, size.height);
     loop {
