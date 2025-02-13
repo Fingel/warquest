@@ -1,14 +1,20 @@
-use crossterm::{
-    cursor::{Hide, MoveTo, Show},
-    event, execute,
-    style::{Color, Print, SetBackgroundColor, SetForegroundColor},
-    terminal::{
-        disable_raw_mode, enable_raw_mode, size, Clear, ClearType, EnterAlternateScreen,
-        LeaveAlternateScreen, ScrollUp, SetSize,
-    },
-};
+use crossterm::{cursor::MoveTo, event, execute, style::Print};
 use log2::*;
 use std::io::{stdout, Result};
+
+mod terminal;
+
+#[derive(Debug)]
+struct World {
+    tiles: Vec<Vec<char>>,
+}
+
+impl World {
+    fn new(cols: u16, rows: u16) -> Self {
+        let tiles = vec![vec!['.'; cols as usize]; rows as usize];
+        Self { tiles }
+    }
+}
 
 #[derive(Debug)]
 struct Coord {
@@ -16,44 +22,16 @@ struct Coord {
     y: u16,
 }
 
-struct Size {
-    width: u16,
-    height: u16,
-}
-
-fn setup() -> Result<Size> {
-    enable_raw_mode()?;
-    let (cols, rows) = size()?;
-    execute!(
-        stdout(),
-        EnterAlternateScreen,
-        SetSize(cols, rows),
-        SetForegroundColor(Color::White),
-        SetBackgroundColor(Color::Black),
-        ScrollUp(rows),
-        Hide,
-    )?;
-    Ok(Size {
-        width: cols,
-        height: rows,
-    })
-}
-
-fn cleanup() -> Result<()> {
-    let (cols, rows) = size()?;
-    execute!(stdout(), LeaveAlternateScreen, SetSize(cols, rows), Show)?;
-    disable_raw_mode()?;
-    Ok(())
-}
-
 #[derive(Debug)]
 struct AppData {
+    world: World,
     player_coord: Coord,
 }
 
 impl AppData {
     fn new(cols: u16, rows: u16) -> Self {
         Self {
+            world: World::new(cols, rows),
             player_coord: Coord {
                 x: cols / 2,
                 y: rows / 2,
@@ -63,19 +41,44 @@ impl AppData {
 }
 
 fn render(app_data: &AppData) -> Result<()> {
-    debug!("{:?}", app_data);
+    debug!("{:?}", app_data.player_coord);
+    for (y, row) in app_data.world.tiles.iter().enumerate() {
+        for (x, tile) in row.iter().enumerate() {
+            execute!(stdout(), MoveTo(x as u16, y as u16), Print(tile),)?;
+        }
+    }
     execute!(
         stdout(),
-        Clear(ClearType::All),
         MoveTo(app_data.player_coord.x, app_data.player_coord.y),
         Print("@")
     )?;
     Ok(())
 }
 
+fn move_character(app_data: &mut AppData, y: i16, x: i16) {
+    let max_y = app_data.world.tiles.len() as u16;
+    let max_x = app_data.world.tiles[0].len() as u16;
+    if app_data.player_coord.x == 0 && x < 0 || app_data.player_coord.x == max_x && x > 0 {
+        return;
+    }
+    if app_data.player_coord.y == 0 && y < 0 || app_data.player_coord.y == max_y && y > 0 {
+        return;
+    }
+    match x {
+        -1 => app_data.player_coord.x -= 1,
+        1 => app_data.player_coord.x += 1,
+        _ => {}
+    }
+    match y {
+        -1 => app_data.player_coord.y -= 1,
+        1 => app_data.player_coord.y += 1,
+        _ => {}
+    }
+}
+
 fn main() -> Result<()> {
     let _log2 = log2::open("warquest.log").start();
-    let size = setup()?;
+    let size = terminal::setup()?;
     let mut app_data = AppData::new(size.width, size.height);
     loop {
         render(&app_data)?;
@@ -84,16 +87,16 @@ fn main() -> Result<()> {
             match event.code {
                 event::KeyCode::Esc => break,
                 event::KeyCode::Up => {
-                    app_data.player_coord.y -= 1;
+                    move_character(&mut app_data, -1, 0);
                 }
                 event::KeyCode::Down => {
-                    app_data.player_coord.y += 1;
+                    move_character(&mut app_data, 1, 0);
                 }
                 event::KeyCode::Left => {
-                    app_data.player_coord.x -= 1;
+                    move_character(&mut app_data, 0, -1);
                 }
                 event::KeyCode::Right => {
-                    app_data.player_coord.x += 1;
+                    move_character(&mut app_data, 0, 1);
                 }
                 _ => {}
             }
@@ -101,6 +104,6 @@ fn main() -> Result<()> {
     }
 
     // Be a good citizen, cleanup
-    cleanup()?;
+    terminal::cleanup()?;
     Ok(())
 }
