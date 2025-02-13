@@ -7,6 +7,7 @@ use crossterm::{
         LeaveAlternateScreen, ScrollUp, SetSize,
     },
 };
+use log2::*;
 use std::io::{stdout, Result};
 
 struct Coord {
@@ -60,6 +61,7 @@ impl AppData {
 }
 
 fn render(app_data: &AppData) -> Result<()> {
+    debug!("Starting render.");
     execute!(
         stdout(),
         Clear(ClearType::All),
@@ -70,6 +72,7 @@ fn render(app_data: &AppData) -> Result<()> {
 }
 
 fn main() -> Result<()> {
+    let _log2 = log2::open("warquest.log").start();
     let size = setup()?;
     let mut app_data = AppData::new(size.width, size.height);
     loop {

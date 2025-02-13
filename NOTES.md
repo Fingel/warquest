@@ -19,4 +19,6 @@ Going with Crossterm for now.
 
 TODO:
   - [*] Get a character on the screen.
-  - [ ] Move character around the screen.
+  - [*] Move character around the screen.
+  - [ ] Implement a world structure.
+  - [ ] Create bounds for character movement.
