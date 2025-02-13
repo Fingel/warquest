@@ -10,6 +10,7 @@ use crossterm::{
 use log2::*;
 use std::io::{stdout, Result};
 
+#[derive(Debug)]
 struct Coord {
     x: u16,
     y: u16,
@@ -45,6 +46,7 @@ fn cleanup() -> Result<()> {
     Ok(())
 }
 
+#[derive(Debug)]
 struct AppData {
     player_coord: Coord,
 }
@@ -61,7 +63,7 @@ impl AppData {
 }
 
 fn render(app_data: &AppData) -> Result<()> {
-    debug!("Starting render.");
+    debug!("{:?}", app_data);
     execute!(
         stdout(),
         Clear(ClearType::All),
