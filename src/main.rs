@@ -96,7 +96,7 @@ fn render(app_data: &AppData) -> Result<()> {
     )?;
     Ok(())
 }
-fn can_move_character(app_data: &mut AppData, direction: Direction) -> bool {
+fn can_move_character(app_data: &AppData, direction: Direction) -> bool {
     let max_y = app_data.world.tiles.len() as u16;
     let max_x = app_data.world.tiles[0].len() as u16;
     if app_data.player_coord.x == 0 && direction == Direction::West
