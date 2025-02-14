@@ -24,3 +24,5 @@ TODO:
   - [x] Create bounds for character movement.
   - [x] Use cardinal directions for movement function.
   - [x] BUILD A WALL
+  - [ ] Set static world size
+  - [ ] Unit test character movement
