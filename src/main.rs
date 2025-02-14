@@ -15,6 +15,13 @@ impl World {
         Self { tiles }
     }
 }
+#[derive(Debug, PartialEq)]
+enum Direction {
+    North,
+    South,
+    East,
+    West,
+}
 
 #[derive(Debug)]
 struct Coord {
@@ -55,24 +62,24 @@ fn render(app_data: &AppData) -> Result<()> {
     Ok(())
 }
 
-fn move_character(app_data: &mut AppData, y: i16, x: i16) {
+fn move_character(app_data: &mut AppData, direction: Direction) {
     let max_y = app_data.world.tiles.len() as u16;
     let max_x = app_data.world.tiles[0].len() as u16;
-    if app_data.player_coord.x == 0 && x < 0 || app_data.player_coord.x == max_x && x > 0 {
+    if app_data.player_coord.x == 0 && direction == Direction::West
+        || app_data.player_coord.x == max_x && direction == Direction::East
+    {
         return;
     }
-    if app_data.player_coord.y == 0 && y < 0 || app_data.player_coord.y == max_y && y > 0 {
+    if app_data.player_coord.y == 0 && direction == Direction::North
+        || app_data.player_coord.y == max_y && direction == Direction::South
+    {
         return;
     }
-    match x {
-        -1 => app_data.player_coord.x -= 1,
-        1 => app_data.player_coord.x += 1,
-        _ => {}
-    }
-    match y {
-        -1 => app_data.player_coord.y -= 1,
-        1 => app_data.player_coord.y += 1,
-        _ => {}
+    match direction {
+        Direction::North => app_data.player_coord.y -= 1,
+        Direction::South => app_data.player_coord.y += 1,
+        Direction::East => app_data.player_coord.x += 1,
+        Direction::West => app_data.player_coord.x -= 1,
     }
 }
 
@@ -87,16 +94,16 @@ fn main() -> Result<()> {
             match event.code {
                 event::KeyCode::Esc => break,
                 event::KeyCode::Up => {
-                    move_character(&mut app_data, -1, 0);
+                    move_character(&mut app_data, Direction::North);
                 }
                 event::KeyCode::Down => {
-                    move_character(&mut app_data, 1, 0);
+                    move_character(&mut app_data, Direction::South);
                 }
                 event::KeyCode::Left => {
-                    move_character(&mut app_data, 0, -1);
+                    move_character(&mut app_data, Direction::West);
                 }
                 event::KeyCode::Right => {
-                    move_character(&mut app_data, 0, 1);
+                    move_character(&mut app_data, Direction::East);
                 }
                 _ => {}
             }

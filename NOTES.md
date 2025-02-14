@@ -23,3 +23,4 @@ TODO:
   - [*] Implement a world structure.
   - [*] Create bounds for character movement.
   - [ ] Use cardinal directions for movement function.
+  - [ ] BUILD A WALL
