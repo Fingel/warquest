@@ -14,11 +14,18 @@ struct World {
 
 impl World {
     fn new(cols: u16, rows: u16) -> Self {
-        let tiles = vec![vec!['.'; cols as usize]; rows as usize];
+        let mut tiles = vec![vec!['.'; cols as usize]; rows as usize];
+        for y in 0..rows {
+            for x in 0..cols {
+                if y == 19 && x > 40 && x < 60 {
+                    tiles[y as usize][x as usize] = '#';
+                }
+            }
+        }
         Self { tiles }
     }
 }
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 enum Direction {
     North,
     South,
@@ -89,21 +96,30 @@ fn render(app_data: &AppData) -> Result<()> {
     )?;
     Ok(())
 }
-
-fn move_character(app_data: &mut AppData, direction: Direction) {
+fn can_move_character(app_data: &mut AppData, direction: Direction) -> bool {
     let max_y = app_data.world.tiles.len() as u16;
     let max_x = app_data.world.tiles[0].len() as u16;
     if app_data.player_coord.x == 0 && direction == Direction::West
         || app_data.player_coord.x == max_x && direction == Direction::East
     {
-        return;
+        return false;
     }
     if app_data.player_coord.y == 0 && direction == Direction::North
         || app_data.player_coord.y == max_y && direction == Direction::South
     {
-        return;
+        return false;
     }
-    app_data.player_coord = app_data.player_coord + direction;
+    let new_coord = app_data.player_coord + direction;
+    if app_data.world.tiles[new_coord.y as usize][new_coord.x as usize] == '#' {
+        return false;
+    }
+    true
+}
+
+fn move_character(app_data: &mut AppData, direction: Direction) {
+    if can_move_character(app_data, direction) {
+        app_data.player_coord = app_data.player_coord + direction;
+    }
 }
 
 fn main() -> Result<()> {
