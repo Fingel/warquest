@@ -7,21 +7,24 @@ use std::{
 
 mod terminal;
 
+const WORLD_ROWS: usize = 40;
+const WORLD_COLS: usize = 100;
+
 #[derive(Debug)]
 struct World {
     tiles: Vec<Vec<char>>,
 }
 
 impl World {
-    fn new(cols: u16, rows: u16) -> Self {
-        let mut tiles = vec![vec!['.'; cols as usize]; rows as usize];
-        for y in 0..rows {
-            for x in 0..cols {
+    fn new(cols: usize, rows: usize) -> Self {
+        let mut tiles = vec![vec!['.'; cols]; rows];
+        (0..rows).for_each(|y| {
+            (0..cols).for_each(|x| {
                 if y == 19 && x > 40 && x < 60 {
-                    tiles[y as usize][x as usize] = '#';
+                    tiles[y][x] = '#';
                 }
-            }
-        }
+            });
+        });
         Self { tiles }
     }
 }
@@ -35,8 +38,8 @@ enum Direction {
 
 #[derive(Debug, Copy, Clone)]
 struct Coord {
-    x: u16,
-    y: u16,
+    x: usize,
+    y: usize,
 }
 
 impl Add<Direction> for Coord {
@@ -71,7 +74,7 @@ struct AppData {
 }
 
 impl AppData {
-    fn new(cols: u16, rows: u16) -> Self {
+    fn new(cols: usize, rows: usize) -> Self {
         Self {
             world: World::new(cols, rows),
             player_coord: Coord {
@@ -91,14 +94,17 @@ fn render(app_data: &AppData) -> Result<()> {
     }
     execute!(
         stdout(),
-        MoveTo(app_data.player_coord.x, app_data.player_coord.y),
+        MoveTo(
+            app_data.player_coord.x as u16,
+            app_data.player_coord.y as u16
+        ),
         Print("@")
     )?;
     Ok(())
 }
 fn can_move_character(app_data: &AppData, direction: Direction) -> bool {
-    let max_y = app_data.world.tiles.len() as u16;
-    let max_x = app_data.world.tiles[0].len() as u16;
+    let max_y = app_data.world.tiles.len();
+    let max_x = app_data.world.tiles[0].len();
     if app_data.player_coord.x == 0 && direction == Direction::West
         || app_data.player_coord.x == max_x - 1 && direction == Direction::East
     {
@@ -110,7 +116,7 @@ fn can_move_character(app_data: &AppData, direction: Direction) -> bool {
         return false;
     }
     let new_coord = app_data.player_coord + direction;
-    if app_data.world.tiles[new_coord.y as usize][new_coord.x as usize] == '#' {
+    if app_data.world.tiles[new_coord.y][new_coord.x] == '#' {
         return false;
     }
     true
@@ -124,8 +130,8 @@ fn move_character(app_data: &mut AppData, direction: Direction) {
 
 fn main() -> Result<()> {
     let _log2 = log2::open("warquest.log").start();
-    let size = terminal::setup()?;
-    let mut app_data = AppData::new(size.width, size.height);
+    terminal::setup(WORLD_COLS, WORLD_ROWS)?;
+    let mut app_data = AppData::new(WORLD_COLS, WORLD_ROWS);
     loop {
         render(&app_data)?;
         let event = event::read()?;
