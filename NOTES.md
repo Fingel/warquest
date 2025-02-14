@@ -26,4 +26,5 @@ TODO:
   - [x] BUILD A WALL
   - [x] Set static world size
   - [ ] Unit test character movement
-  - [ ] Read world from file
+  - [x] Read world from file
+  - [ ] Better error handling with terminal cleanup

@@ -1,6 +1,7 @@
 use crossterm::{cursor::MoveTo, event, execute, style::Print};
 use log2::*;
 use std::{
+    fs,
     io::{stdout, Result},
     ops::Add,
 };
@@ -18,11 +19,10 @@ struct World {
 impl World {
     fn new(cols: usize, rows: usize) -> Self {
         let mut tiles = vec![vec!['.'; cols]; rows];
-        (0..rows).for_each(|y| {
-            (0..cols).for_each(|x| {
-                if y == 19 && x > 40 && x < 60 {
-                    tiles[y][x] = '#';
-                }
+        let map = fs::read_to_string("map.txt").expect("Failed to read map file");
+        map.lines().enumerate().for_each(|(y, line)| {
+            line.chars().enumerate().for_each(|(x, c)| {
+                tiles[y][x] = c;
             });
         });
         Self { tiles }
