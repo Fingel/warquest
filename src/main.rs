@@ -1,6 +1,9 @@
 use crossterm::{cursor::MoveTo, event, execute, style::Print};
 use log2::*;
-use std::io::{stdout, Result};
+use std::{
+    io::{stdout, Result},
+    ops::Add,
+};
 
 mod terminal;
 
@@ -23,10 +26,35 @@ enum Direction {
     West,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 struct Coord {
     x: u16,
     y: u16,
+}
+
+impl Add<Direction> for Coord {
+    type Output = Coord;
+
+    fn add(self, other: Direction) -> Coord {
+        match other {
+            Direction::North => Coord {
+                x: self.x,
+                y: self.y - 1,
+            },
+            Direction::South => Coord {
+                x: self.x,
+                y: self.y + 1,
+            },
+            Direction::East => Coord {
+                x: self.x + 1,
+                y: self.y,
+            },
+            Direction::West => Coord {
+                x: self.x - 1,
+                y: self.y,
+            },
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -75,12 +103,7 @@ fn move_character(app_data: &mut AppData, direction: Direction) {
     {
         return;
     }
-    match direction {
-        Direction::North => app_data.player_coord.y -= 1,
-        Direction::South => app_data.player_coord.y += 1,
-        Direction::East => app_data.player_coord.x += 1,
-        Direction::West => app_data.player_coord.x -= 1,
-    }
+    app_data.player_coord = app_data.player_coord + direction;
 }
 
 fn main() -> Result<()> {
