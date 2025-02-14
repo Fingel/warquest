@@ -107,10 +107,7 @@ fn can_move_character(app_data: &AppData, direction: Direction) -> bool {
     let max_x = app_data.world.tiles[0].len();
     if app_data.player_coord.x == 0 && direction == Direction::West
         || app_data.player_coord.x == max_x - 1 && direction == Direction::East
-    {
-        return false;
-    }
-    if app_data.player_coord.y == 0 && direction == Direction::North
+        || app_data.player_coord.y == 0 && direction == Direction::North
         || app_data.player_coord.y == max_y - 1 && direction == Direction::South
     {
         return false;
