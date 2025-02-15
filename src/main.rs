@@ -39,18 +39,18 @@ impl Add<Direction> for Coord {
         match other {
             Direction::North => Coord {
                 x: self.x,
-                y: self.y - 1,
+                y: self.y.saturating_sub(1),
             },
             Direction::South => Coord {
                 x: self.x,
-                y: self.y + 1,
+                y: self.y.saturating_add(1),
             },
             Direction::East => Coord {
-                x: self.x + 1,
+                x: self.x.saturating_add(1),
                 y: self.y,
             },
             Direction::West => Coord {
-                x: self.x - 1,
+                x: self.x.saturating_sub(1),
                 y: self.y,
             },
         }
@@ -92,23 +92,10 @@ fn render(app_data: &AppData) -> Result<()> {
     )?;
     Ok(())
 }
-fn can_move_character(app_data: &AppData, direction: Direction) -> bool {
-    if app_data.player_coord.x == 0 && direction == Direction::West
-        || app_data.player_coord.x == WORLD_COLS - 1 && direction == Direction::East
-        || app_data.player_coord.y == 0 && direction == Direction::North
-        || app_data.player_coord.y == WORLD_ROWS - 1 && direction == Direction::South
-    {
-        return false;
-    }
-    let new_coord = app_data.player_coord + direction;
-    if app_data.world.tiles[new_coord.y][new_coord.x].solid {
-        return false;
-    }
-    true
-}
 
 fn move_character(app_data: &mut AppData, direction: Direction) {
-    if can_move_character(app_data, direction) {
+    let new_coord = app_data.player_coord + direction;
+    if app_data.world.can_move_to(new_coord.y, new_coord.x) {
         app_data.player_coord = app_data.player_coord + direction;
     }
 }
@@ -149,24 +136,6 @@ fn main() -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_can_move_character() {
-        let map = ".....\n\
-                   .....\n\
-                   ..@..\n\
-                   .....\n\
-                   .....";
-        let world = World::new(5, 5, map.to_string());
-        let app_data = AppData {
-            player_coord: Coord { x: 2, y: 2 },
-            world,
-        };
-        assert!(can_move_character(&app_data, Direction::North));
-        assert!(can_move_character(&app_data, Direction::South));
-        assert!(can_move_character(&app_data, Direction::West));
-        assert!(can_move_character(&app_data, Direction::East));
-    }
 
     #[test]
     fn test_move_character() {
@@ -220,13 +189,17 @@ mod tests {
                    .....\n\
                    .....";
         let world = World::new(5, 5, map.to_string());
-        let app_data = AppData {
+        let mut app_data = AppData {
             player_coord: Coord { x: 2, y: 2 },
             world,
         };
-        assert!(!can_move_character(&app_data, Direction::North));
-        assert!(can_move_character(&app_data, Direction::South));
-        assert!(!can_move_character(&app_data, Direction::West));
-        assert!(can_move_character(&app_data, Direction::East));
+        move_character(&mut app_data, Direction::North);
+        assert_eq!(app_data.player_coord, Coord { x: 2, y: 2 });
+        move_character(&mut app_data, Direction::West);
+        assert_eq!(app_data.player_coord, Coord { x: 2, y: 2 });
+        move_character(&mut app_data, Direction::South);
+        assert_eq!(app_data.player_coord, Coord { x: 2, y: 3 });
+        move_character(&mut app_data, Direction::East);
+        assert_eq!(app_data.player_coord, Coord { x: 3, y: 3 });
     }
 }
