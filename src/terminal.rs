@@ -4,7 +4,7 @@ use crossterm::{
     style::{Color, SetBackgroundColor, SetForegroundColor},
     terminal::{
         disable_raw_mode, enable_raw_mode, size, EnterAlternateScreen, LeaveAlternateScreen,
-        ScrollUp, SetSize,
+        SetSize,
     },
 };
 use std::io::{stdout, Error, ErrorKind, Result};
@@ -18,10 +18,8 @@ pub fn setup(cols: usize, rows: usize) -> Result<()> {
     execute!(
         stdout(),
         EnterAlternateScreen,
-        SetSize(cols as u16, rows as u16),
         SetForegroundColor(Color::White),
         SetBackgroundColor(Color::Black),
-        ScrollUp(rows as u16),
         Hide,
     )?;
     Ok(())
