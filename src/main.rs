@@ -17,13 +17,8 @@ struct World {
 }
 
 impl World {
-    fn new(cols: usize, rows: usize, map: String) -> Self {
-        let mut tiles = vec![vec!['.'; cols]; rows];
-        map.lines().enumerate().for_each(|(y, line)| {
-            line.chars().enumerate().for_each(|(x, c)| {
-                tiles[y][x] = c;
-            });
-        });
+    fn new(map: String) -> Self {
+        let tiles = map.lines().map(|line| line.chars().collect()).collect();
         Self { tiles }
     }
 }
@@ -75,7 +70,7 @@ struct AppData {
 impl AppData {
     fn new(cols: usize, rows: usize, map: String) -> Self {
         Self {
-            world: World::new(cols, rows, map),
+            world: World::new(map),
             player_coord: Coord {
                 x: cols / 2,
                 y: rows / 2,
@@ -168,7 +163,7 @@ mod tests {
                    ..@..\n\
                    .....\n\
                    .....";
-        let world = World::new(5, 5, map.to_string());
+        let world = World::new(map.to_string());
         let app_data = AppData {
             player_coord: Coord { x: 2, y: 2 },
             world,
@@ -186,7 +181,7 @@ mod tests {
                    ..@..\n\
                    .....\n\
                    .....";
-        let world = World::new(5, 5, map.to_string());
+        let world = World::new(map.to_string());
         let mut app_data = AppData {
             player_coord: Coord { x: 2, y: 2 },
             world,
@@ -208,7 +203,7 @@ mod tests {
                    .....\n\
                    .....\n\
                    .....";
-        let world = World::new(5, 5, map.to_string());
+        let world = World::new(map.to_string());
         let mut app_data = AppData {
             player_coord: Coord { x: 0, y: 0 },
             world,
@@ -230,7 +225,7 @@ mod tests {
                    .#@..\n\
                    .....\n\
                    .....";
-        let world = World::new(5, 5, map.to_string());
+        let world = World::new(map.to_string());
         let app_data = AppData {
             player_coord: Coord { x: 2, y: 2 },
             world,
