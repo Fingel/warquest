@@ -44,11 +44,6 @@ fn character_to_tile(c: char) -> Tile {
             solid: false,
             display: '☠',
         },
-        '෴' => Tile {
-            color: Color::Green,
-            solid: true,
-            display: '෴',
-        },
         _ => Tile {
             color: Color::White,
             solid: false,
@@ -143,7 +138,7 @@ fn render(app_data: &AppData) -> Result<()> {
             app_data.player_coord.x as u16,
             app_data.player_coord.y as u16
         ),
-        Print("@")
+        Print("@".with(Color::White))
     )?;
     Ok(())
 }
