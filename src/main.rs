@@ -10,63 +10,14 @@ use std::{
     ops::Add,
 };
 
+use map::World;
+
+mod map;
 mod terminal;
 
 const WORLD_ROWS: usize = 40;
 const WORLD_COLS: usize = 100;
 
-#[derive(Debug)]
-struct Tile {
-    color: Color,
-    solid: bool,
-    display: char,
-}
-
-#[derive(Debug)]
-struct World {
-    tiles: Vec<Vec<Tile>>,
-}
-
-fn character_to_tile(c: char) -> Tile {
-    match c {
-        '/' => Tile {
-            color: Color::DarkYellow,
-            solid: false,
-            display: '/',
-        },
-        '#' => Tile {
-            color: Color::White,
-            solid: true,
-            display: '#',
-        },
-        '☠' => Tile {
-            color: Color::Red,
-            solid: false,
-            display: '☠',
-        },
-        _ => Tile {
-            color: Color::White,
-            solid: false,
-            display: c,
-        },
-    }
-}
-
-impl World {
-    fn new(map: String) -> Self {
-        let tiles = map
-            .lines()
-            .take(WORLD_ROWS)
-            .map(|line| {
-                line.chars()
-                    .take(WORLD_COLS)
-                    .map(character_to_tile)
-                    .collect()
-            })
-            .collect();
-        Self { tiles }
-    }
-}
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum Direction {
     North,
@@ -115,7 +66,7 @@ struct AppData {
 impl AppData {
     fn new(map: String) -> Self {
         Self {
-            world: World::new(map),
+            world: World::new(WORLD_ROWS, WORLD_COLS, map),
             player_coord: Coord {
                 x: WORLD_COLS / 2,
                 y: WORLD_ROWS / 2,
@@ -128,8 +79,7 @@ fn render(app_data: &AppData) -> Result<()> {
     debug!("{:?}", app_data.player_coord);
     for (y, row) in app_data.world.tiles.iter().enumerate() {
         for (x, tile) in row.iter().enumerate() {
-            let styled = tile.display.with(tile.color);
-            execute!(stdout(), MoveTo(x as u16, y as u16), Print(styled))?;
+            execute!(stdout(), MoveTo(x as u16, y as u16), Print(tile))?;
         }
     }
     execute!(
@@ -207,7 +157,7 @@ mod tests {
                    ..@..\n\
                    .....\n\
                    .....";
-        let world = World::new(map.to_string());
+        let world = World::new(5, 5, map.to_string());
         let app_data = AppData {
             player_coord: Coord { x: 2, y: 2 },
             world,
@@ -225,7 +175,7 @@ mod tests {
                    ..@..\n\
                    .....\n\
                    .....";
-        let world = World::new(map.to_string());
+        let world = World::new(5, 5, map.to_string());
         let mut app_data = AppData {
             player_coord: Coord { x: 2, y: 2 },
             world,
@@ -247,7 +197,7 @@ mod tests {
                    .....\n\
                    .....\n\
                    .....";
-        let world = World::new(map.to_string());
+        let world = World::new(5, 5, map.to_string());
         let mut app_data = AppData {
             player_coord: Coord { x: 0, y: 0 },
             world,
@@ -269,7 +219,7 @@ mod tests {
                    .#@..\n\
                    .....\n\
                    .....";
-        let world = World::new(map.to_string());
+        let world = World::new(5, 5, map.to_string());
         let app_data = AppData {
             player_coord: Coord { x: 2, y: 2 },
             world,
