@@ -18,7 +18,11 @@ struct World {
 
 impl World {
     fn new(map: String) -> Self {
-        let tiles = map.lines().map(|line| line.chars().collect()).collect();
+        let tiles = map
+            .lines()
+            .take(WORLD_ROWS)
+            .map(|line| line.chars().take(WORLD_COLS).collect())
+            .collect();
         Self { tiles }
     }
 }
@@ -68,12 +72,12 @@ struct AppData {
 }
 
 impl AppData {
-    fn new(cols: usize, rows: usize, map: String) -> Self {
+    fn new(map: String) -> Self {
         Self {
             world: World::new(map),
             player_coord: Coord {
-                x: cols / 2,
-                y: rows / 2,
+                x: WORLD_COLS / 2,
+                y: WORLD_ROWS / 2,
             },
         }
     }
@@ -97,12 +101,10 @@ fn render(app_data: &AppData) -> Result<()> {
     Ok(())
 }
 fn can_move_character(app_data: &AppData, direction: Direction) -> bool {
-    let max_y = app_data.world.tiles.len();
-    let max_x = app_data.world.tiles[0].len();
     if app_data.player_coord.x == 0 && direction == Direction::West
-        || app_data.player_coord.x == max_x - 1 && direction == Direction::East
+        || app_data.player_coord.x == WORLD_COLS - 1 && direction == Direction::East
         || app_data.player_coord.y == 0 && direction == Direction::North
-        || app_data.player_coord.y == max_y - 1 && direction == Direction::South
+        || app_data.player_coord.y == WORLD_ROWS - 1 && direction == Direction::South
     {
         return false;
     }
@@ -123,7 +125,7 @@ fn main() -> Result<()> {
     let _log2 = log2::open("warquest.log").start();
     let map = fs::read_to_string("map.txt").expect("Failed to read map file");
     terminal::setup(WORLD_COLS, WORLD_ROWS)?;
-    let mut app_data = AppData::new(WORLD_COLS, WORLD_ROWS, map);
+    let mut app_data = AppData::new(map);
     loop {
         render(&app_data)?;
         let event = event::read()?;
