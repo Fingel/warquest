@@ -17,9 +17,8 @@ struct World {
 }
 
 impl World {
-    fn new(cols: usize, rows: usize) -> Self {
+    fn new(cols: usize, rows: usize, map: String) -> Self {
         let mut tiles = vec![vec!['.'; cols]; rows];
-        let map = fs::read_to_string("map.txt").expect("Failed to read map file");
         map.lines().enumerate().for_each(|(y, line)| {
             line.chars().enumerate().for_each(|(x, c)| {
                 tiles[y][x] = c;
@@ -36,7 +35,7 @@ enum Direction {
     West,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 struct Coord {
     x: usize,
     y: usize,
@@ -74,9 +73,9 @@ struct AppData {
 }
 
 impl AppData {
-    fn new(cols: usize, rows: usize) -> Self {
+    fn new(cols: usize, rows: usize, map: String) -> Self {
         Self {
-            world: World::new(cols, rows),
+            world: World::new(cols, rows, map),
             player_coord: Coord {
                 x: cols / 2,
                 y: rows / 2,
@@ -127,8 +126,9 @@ fn move_character(app_data: &mut AppData, direction: Direction) {
 
 fn main() -> Result<()> {
     let _log2 = log2::open("warquest.log").start();
+    let map = fs::read_to_string("map.txt").expect("Failed to read map file");
     terminal::setup(WORLD_COLS, WORLD_ROWS)?;
-    let mut app_data = AppData::new(WORLD_COLS, WORLD_ROWS);
+    let mut app_data = AppData::new(WORLD_COLS, WORLD_ROWS, map);
     loop {
         render(&app_data)?;
         let event = event::read()?;
@@ -155,4 +155,89 @@ fn main() -> Result<()> {
     // Be a good citizen, cleanup
     terminal::cleanup()?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_can_move_character() {
+        let map = ".....\n\
+                   .....\n\
+                   ..@..\n\
+                   .....\n\
+                   .....";
+        let world = World::new(5, 5, map.to_string());
+        let app_data = AppData {
+            player_coord: Coord { x: 2, y: 2 },
+            world,
+        };
+        assert!(can_move_character(&app_data, Direction::North));
+        assert!(can_move_character(&app_data, Direction::South));
+        assert!(can_move_character(&app_data, Direction::West));
+        assert!(can_move_character(&app_data, Direction::East));
+    }
+
+    #[test]
+    fn test_move_character() {
+        let map = ".....\n\
+                   .....\n\
+                   ..@..\n\
+                   .....\n\
+                   .....";
+        let world = World::new(5, 5, map.to_string());
+        let mut app_data = AppData {
+            player_coord: Coord { x: 2, y: 2 },
+            world,
+        };
+        move_character(&mut app_data, Direction::North);
+        assert_eq!(app_data.player_coord, Coord { x: 2, y: 1 });
+        move_character(&mut app_data, Direction::South);
+        assert_eq!(app_data.player_coord, Coord { x: 2, y: 2 });
+        move_character(&mut app_data, Direction::West);
+        assert_eq!(app_data.player_coord, Coord { x: 1, y: 2 });
+        move_character(&mut app_data, Direction::East);
+        assert_eq!(app_data.player_coord, Coord { x: 2, y: 2 });
+    }
+
+    #[test]
+    fn test_move_character_bounded() {
+        let map = "@....\n\
+                   .....\n\
+                   .....\n\
+                   .....\n\
+                   .....";
+        let world = World::new(5, 5, map.to_string());
+        let mut app_data = AppData {
+            player_coord: Coord { x: 0, y: 0 },
+            world,
+        };
+        move_character(&mut app_data, Direction::North);
+        assert_eq!(app_data.player_coord, Coord { x: 0, y: 0 });
+        move_character(&mut app_data, Direction::South);
+        assert_eq!(app_data.player_coord, Coord { x: 0, y: 1 });
+        move_character(&mut app_data, Direction::West);
+        assert_eq!(app_data.player_coord, Coord { x: 0, y: 1 });
+        move_character(&mut app_data, Direction::East);
+        assert_eq!(app_data.player_coord, Coord { x: 1, y: 1 });
+    }
+
+    #[test]
+    fn test_can_move_character_walls() {
+        let map = ".....\n\
+                   #####\n\
+                   .#@..\n\
+                   .....\n\
+                   .....";
+        let world = World::new(5, 5, map.to_string());
+        let app_data = AppData {
+            player_coord: Coord { x: 2, y: 2 },
+            world,
+        };
+        assert!(!can_move_character(&app_data, Direction::North));
+        assert!(can_move_character(&app_data, Direction::South));
+        assert!(!can_move_character(&app_data, Direction::West));
+        assert!(can_move_character(&app_data, Direction::East));
+    }
 }
