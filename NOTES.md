@@ -10,6 +10,7 @@ Links:
 * Rust terminal library: https://github.com/redox-os/termion
 * Another, possibly more featureful: https://github.com/crossterm-rs/crossterm
 * Rexpaint: For drawing ascii stuff: https://www.gridsagegames.com/rexpaint/downloads.html
+* Ansi colors: https://www.ditig.com/publications/256-colors-cheat-sheet
 
 Going with Crossterm for now.
 
