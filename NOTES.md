@@ -25,6 +25,7 @@ TODO:
   - [x] Use cardinal directions for movement function.
   - [x] BUILD A WALL
   - [x] Set static world size
-  - [ ] Unit test character movement
+  - [x] Unit test character movement
   - [x] Read world from file
+  - [x] Colored/Solid tiles
   - [ ] Better error handling with terminal cleanup

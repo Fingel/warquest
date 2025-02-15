@@ -1,4 +1,8 @@
-use crossterm::{cursor::MoveTo, event, execute, style::Print};
+use crossterm::{
+    cursor::MoveTo,
+    event, execute,
+    style::{Color, Print, Stylize},
+};
 use log2::*;
 use std::{
     fs,
@@ -12,8 +16,45 @@ const WORLD_ROWS: usize = 40;
 const WORLD_COLS: usize = 100;
 
 #[derive(Debug)]
+struct Tile {
+    color: Color,
+    solid: bool,
+    display: char,
+}
+
+#[derive(Debug)]
 struct World {
-    tiles: Vec<Vec<char>>,
+    tiles: Vec<Vec<Tile>>,
+}
+
+fn character_to_tile(c: char) -> Tile {
+    match c {
+        '/' => Tile {
+            color: Color::DarkYellow,
+            solid: false,
+            display: '/',
+        },
+        '#' => Tile {
+            color: Color::White,
+            solid: true,
+            display: '#',
+        },
+        '☠' => Tile {
+            color: Color::Red,
+            solid: false,
+            display: '☠',
+        },
+        '෴' => Tile {
+            color: Color::Green,
+            solid: true,
+            display: '෴',
+        },
+        _ => Tile {
+            color: Color::White,
+            solid: false,
+            display: c,
+        },
+    }
 }
 
 impl World {
@@ -21,7 +62,12 @@ impl World {
         let tiles = map
             .lines()
             .take(WORLD_ROWS)
-            .map(|line| line.chars().take(WORLD_COLS).collect())
+            .map(|line| {
+                line.chars()
+                    .take(WORLD_COLS)
+                    .map(character_to_tile)
+                    .collect()
+            })
             .collect();
         Self { tiles }
     }
@@ -87,7 +133,8 @@ fn render(app_data: &AppData) -> Result<()> {
     debug!("{:?}", app_data.player_coord);
     for (y, row) in app_data.world.tiles.iter().enumerate() {
         for (x, tile) in row.iter().enumerate() {
-            execute!(stdout(), MoveTo(x as u16, y as u16), Print(tile),)?;
+            let styled = tile.display.with(tile.color);
+            execute!(stdout(), MoveTo(x as u16, y as u16), Print(styled))?;
         }
     }
     execute!(
@@ -109,7 +156,7 @@ fn can_move_character(app_data: &AppData, direction: Direction) -> bool {
         return false;
     }
     let new_coord = app_data.player_coord + direction;
-    if app_data.world.tiles[new_coord.y][new_coord.x] == '#' {
+    if app_data.world.tiles[new_coord.y][new_coord.x].solid {
         return false;
     }
     true
