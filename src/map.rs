@@ -35,7 +35,7 @@ impl World {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct Tile {
     color: Color,
     solid: bool,
@@ -103,5 +103,29 @@ impl From<char> for Tile {
 impl fmt::Display for Tile {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.display.with(self.color))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_world_from_map() {
+        let map = String::from(".#/\n^A ");
+        let tiles = vec![
+            vec![Tile::floor(), Tile::wall(), Tile::path()],
+            vec![Tile::mountain(), Tile::other('A'), Tile::other(' ')],
+        ];
+        let world = World::new(2, 3, map);
+        assert_eq!(world.tiles, tiles);
+    }
+
+    #[test]
+    fn test_world_truncates_map() {
+        let map = String::from("..NOT_HERE\nNOT_THERE");
+        let tiles = vec![vec![Tile::floor(), Tile::floor()]];
+        let world = World::new(1, 2, map);
+        assert_eq!(world.tiles, tiles);
     }
 }
