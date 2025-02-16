@@ -30,5 +30,5 @@ TODO:
   - [x] Read world from file
   - [x] Colored/Solid tiles
   - [ ] Better error handling with terminal cleanup
-  - [ ] Reserved Space for UI
-  - [ ] Print messages to screen in the UI
+  - [x] Reserved Space for UI
+  - [x] Print messages to screen in the UI

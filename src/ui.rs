@@ -23,9 +23,11 @@ impl UI {
     }
 
     pub fn render(&mut self) -> Result<()> {
-        for _ in 0..self.rows {
+        for _ in 2..self.rows {
             self.print_line(" ".repeat(self.cols).as_str())?
         }
+        self.print_line("Connected to WarQuest!")?;
+        self.print_line("Daily login bonus: 5,000,000,000 WarBucks.")?;
         Ok(())
     }
 
