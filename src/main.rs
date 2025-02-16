@@ -101,7 +101,7 @@ fn move_character(app_data: &mut AppData, direction: Direction) {
 }
 
 fn main() -> Result<()> {
-    let _log2 = log2::open("warquest.log").start();
+    log2::open("warquest.log").start();
     let map = fs::read_to_string("map.txt").expect("Failed to read map file");
     terminal::setup(WORLD_COLS, WORLD_ROWS)?;
     let mut app_data = AppData::new(map);
