@@ -110,7 +110,7 @@ fn main() -> Result<()> {
         let event = event::read()?;
         if let event::Event::Key(event) = event {
             match event.code {
-                event::KeyCode::Esc => break,
+                event::KeyCode::Esc | event::KeyCode::Char('q') => break,
                 event::KeyCode::Up => {
                     move_character(&mut app_data, Direction::North);
                 }
