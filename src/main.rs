@@ -110,7 +110,7 @@ fn main() -> Result<()> {
         col: 0,
         row: WORLD_ROWS,
     };
-    let ui = UI::new(ui_start, SCREEN_COLS, SCREEN_ROWS - WORLD_ROWS);
+    let mut ui = UI::new(ui_start, SCREEN_COLS, SCREEN_ROWS - WORLD_ROWS);
     ui.render()?;
     let mut app_data = AppData::new(map);
     loop {
@@ -121,17 +121,19 @@ fn main() -> Result<()> {
                 event::KeyCode::Esc | event::KeyCode::Char('q') => break,
                 event::KeyCode::Up => {
                     move_character(&mut app_data, Direction::North);
-                    ui.print_line("YOU MOVED NORTH")?;
+                    ui.print_line("YOU PRESSED ⇧")?;
                 }
                 event::KeyCode::Down => {
                     move_character(&mut app_data, Direction::South);
-                    ui.print_line("YOU MOVED SOUTH")?;
+                    ui.print_line("YOU PRESSED ⇩")?;
                 }
                 event::KeyCode::Left => {
                     move_character(&mut app_data, Direction::West);
+                    ui.print_line("YOU PRESSED ⇦")?;
                 }
                 event::KeyCode::Right => {
                     move_character(&mut app_data, Direction::East);
+                    ui.print_line("YOU PRESSED ⇨")?;
                 }
                 _ => {}
             }
