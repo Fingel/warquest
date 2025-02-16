@@ -1,9 +1,14 @@
-use crossterm::style::{Color, Stylize};
+use crossterm::{
+    cursor::MoveTo,
+    queue,
+    style::{Color, Print, Stylize},
+};
 use std::fmt;
+use std::io::{Result, Stdout};
 
 #[derive(Debug)]
 pub struct World {
-    pub tiles: Vec<Vec<Tile>>,
+    tiles: Vec<Vec<Tile>>,
 }
 
 impl World {
@@ -19,10 +24,19 @@ impl World {
     pub fn can_move_to(&self, col: usize, row: usize) -> bool {
         row < self.tiles.len() && col < self.tiles[0].len() && !self.tiles[row][col].solid
     }
+
+    pub fn render(&self, stdout: &mut Stdout) -> Result<()> {
+        for (row, cols) in self.tiles.iter().enumerate() {
+            for (col, tile) in cols.iter().enumerate() {
+                queue!(stdout, MoveTo(col as u16, row as u16), Print(tile))?;
+            }
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug)]
-pub struct Tile {
+struct Tile {
     color: Color,
     solid: bool,
     display: char,

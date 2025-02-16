@@ -78,11 +78,7 @@ impl AppData {
 fn render(app_data: &AppData) -> Result<()> {
     debug!("{:?}", app_data.player_coord);
     let mut stdout = stdout();
-    for (row, cols) in app_data.world.tiles.iter().enumerate() {
-        for (col, tile) in cols.iter().enumerate() {
-            queue!(stdout, MoveTo(col as u16, row as u16), Print(tile))?;
-        }
-    }
+    app_data.world.render(&mut stdout)?;
     queue!(
         stdout,
         MoveTo(
