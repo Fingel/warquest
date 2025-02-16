@@ -1,12 +1,12 @@
 use crossterm::{
     cursor::MoveTo,
-    event, execute,
+    event, queue,
     style::{Color, Print, Stylize},
 };
 use log2::*;
 use std::{
     fs,
-    io::{stdout, Result},
+    io::{stdout, Result, Write},
     ops::Add,
 };
 
@@ -77,19 +77,21 @@ impl AppData {
 
 fn render(app_data: &AppData) -> Result<()> {
     debug!("{:?}", app_data.player_coord);
+    let mut stdout = stdout();
     for (row, cols) in app_data.world.tiles.iter().enumerate() {
         for (col, tile) in cols.iter().enumerate() {
-            execute!(stdout(), MoveTo(col as u16, row as u16), Print(tile))?;
+            queue!(stdout, MoveTo(col as u16, row as u16), Print(tile))?;
         }
     }
-    execute!(
-        stdout(),
+    queue!(
+        stdout,
         MoveTo(
             app_data.player_coord.col as u16,
             app_data.player_coord.row as u16
         ),
         Print("@".with(Color::White))
     )?;
+    stdout.flush()?;
     Ok(())
 }
 
