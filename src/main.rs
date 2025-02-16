@@ -15,8 +15,8 @@ use map::World;
 mod map;
 mod terminal;
 
-const WORLD_ROWS: usize = 40;
 const WORLD_COLS: usize = 100;
+const WORLD_ROWS: usize = 40;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum Direction {
@@ -28,8 +28,8 @@ enum Direction {
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 struct Coord {
-    x: usize,
-    y: usize,
+    col: usize,
+    row: usize,
 }
 
 impl Add<Direction> for Coord {
@@ -38,20 +38,20 @@ impl Add<Direction> for Coord {
     fn add(self, other: Direction) -> Coord {
         match other {
             Direction::North => Coord {
-                x: self.x,
-                y: self.y.saturating_sub(1),
+                col: self.col,
+                row: self.row.saturating_sub(1),
             },
             Direction::South => Coord {
-                x: self.x,
-                y: self.y.saturating_add(1),
+                col: self.col,
+                row: self.row.saturating_add(1),
             },
             Direction::East => Coord {
-                x: self.x.saturating_add(1),
-                y: self.y,
+                col: self.col.saturating_add(1),
+                row: self.row,
             },
             Direction::West => Coord {
-                x: self.x.saturating_sub(1),
-                y: self.y,
+                col: self.col.saturating_sub(1),
+                row: self.row,
             },
         }
     }
@@ -68,8 +68,8 @@ impl AppData {
         Self {
             world: World::new(WORLD_ROWS, WORLD_COLS, map),
             player_coord: Coord {
-                x: WORLD_COLS / 2,
-                y: WORLD_ROWS / 2,
+                col: WORLD_COLS / 2,
+                row: WORLD_ROWS / 2,
             },
         }
     }
@@ -77,16 +77,16 @@ impl AppData {
 
 fn render(app_data: &AppData) -> Result<()> {
     debug!("{:?}", app_data.player_coord);
-    for (y, row) in app_data.world.tiles.iter().enumerate() {
-        for (x, tile) in row.iter().enumerate() {
-            execute!(stdout(), MoveTo(x as u16, y as u16), Print(tile))?;
+    for (row, cols) in app_data.world.tiles.iter().enumerate() {
+        for (col, tile) in cols.iter().enumerate() {
+            execute!(stdout(), MoveTo(col as u16, row as u16), Print(tile))?;
         }
     }
     execute!(
         stdout(),
         MoveTo(
-            app_data.player_coord.x as u16,
-            app_data.player_coord.y as u16
+            app_data.player_coord.col as u16,
+            app_data.player_coord.row as u16
         ),
         Print("@".with(Color::White))
     )?;
@@ -95,13 +95,13 @@ fn render(app_data: &AppData) -> Result<()> {
 
 fn move_character(app_data: &mut AppData, direction: Direction) {
     let new_coord = app_data.player_coord + direction;
-    if app_data.world.can_move_to(new_coord.y, new_coord.x) {
+    if app_data.world.can_move_to(new_coord.col, new_coord.row) {
         app_data.player_coord = app_data.player_coord + direction;
     }
 }
 
 fn main() -> Result<()> {
-    log2::open("warquest.log").start();
+    let _log2 = log2::open("warquest.log").start();
     let map = fs::read_to_string("map.txt").expect("Failed to read map file");
     terminal::setup(WORLD_COLS, WORLD_ROWS)?;
     let mut app_data = AppData::new(map);
@@ -146,17 +146,17 @@ mod tests {
                    .....";
         let world = World::new(5, 5, map.to_string());
         let mut app_data = AppData {
-            player_coord: Coord { x: 2, y: 2 },
+            player_coord: Coord { col: 2, row: 2 },
             world,
         };
         move_character(&mut app_data, Direction::North);
-        assert_eq!(app_data.player_coord, Coord { x: 2, y: 1 });
+        assert_eq!(app_data.player_coord, Coord { col: 2, row: 1 });
         move_character(&mut app_data, Direction::South);
-        assert_eq!(app_data.player_coord, Coord { x: 2, y: 2 });
+        assert_eq!(app_data.player_coord, Coord { col: 2, row: 2 });
         move_character(&mut app_data, Direction::West);
-        assert_eq!(app_data.player_coord, Coord { x: 1, y: 2 });
+        assert_eq!(app_data.player_coord, Coord { col: 1, row: 2 });
         move_character(&mut app_data, Direction::East);
-        assert_eq!(app_data.player_coord, Coord { x: 2, y: 2 });
+        assert_eq!(app_data.player_coord, Coord { col: 2, row: 2 });
     }
 
     #[test]
@@ -168,17 +168,17 @@ mod tests {
                    .....";
         let world = World::new(5, 5, map.to_string());
         let mut app_data = AppData {
-            player_coord: Coord { x: 0, y: 0 },
+            player_coord: Coord { col: 0, row: 0 },
             world,
         };
         move_character(&mut app_data, Direction::North);
-        assert_eq!(app_data.player_coord, Coord { x: 0, y: 0 });
+        assert_eq!(app_data.player_coord, Coord { col: 0, row: 0 });
         move_character(&mut app_data, Direction::South);
-        assert_eq!(app_data.player_coord, Coord { x: 0, y: 1 });
+        assert_eq!(app_data.player_coord, Coord { col: 0, row: 1 });
         move_character(&mut app_data, Direction::West);
-        assert_eq!(app_data.player_coord, Coord { x: 0, y: 1 });
+        assert_eq!(app_data.player_coord, Coord { col: 0, row: 1 });
         move_character(&mut app_data, Direction::East);
-        assert_eq!(app_data.player_coord, Coord { x: 1, y: 1 });
+        assert_eq!(app_data.player_coord, Coord { col: 1, row: 1 });
     }
 
     #[test]
@@ -190,16 +190,16 @@ mod tests {
                    .....";
         let world = World::new(5, 5, map.to_string());
         let mut app_data = AppData {
-            player_coord: Coord { x: 2, y: 2 },
+            player_coord: Coord { col: 2, row: 2 },
             world,
         };
         move_character(&mut app_data, Direction::North);
-        assert_eq!(app_data.player_coord, Coord { x: 2, y: 2 });
+        assert_eq!(app_data.player_coord, Coord { col: 2, row: 2 });
         move_character(&mut app_data, Direction::West);
-        assert_eq!(app_data.player_coord, Coord { x: 2, y: 2 });
+        assert_eq!(app_data.player_coord, Coord { col: 2, row: 2 });
         move_character(&mut app_data, Direction::South);
-        assert_eq!(app_data.player_coord, Coord { x: 2, y: 3 });
+        assert_eq!(app_data.player_coord, Coord { col: 2, row: 3 });
         move_character(&mut app_data, Direction::East);
-        assert_eq!(app_data.player_coord, Coord { x: 3, y: 3 });
+        assert_eq!(app_data.player_coord, Coord { col: 3, row: 3 });
     }
 }

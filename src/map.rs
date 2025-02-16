@@ -16,7 +16,7 @@ impl World {
         Self { tiles }
     }
 
-    pub fn can_move_to(&self, row: usize, col: usize) -> bool {
+    pub fn can_move_to(&self, col: usize, row: usize) -> bool {
         row < self.tiles.len() && col < self.tiles[0].len() && !self.tiles[row][col].solid
     }
 }
