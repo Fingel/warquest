@@ -11,12 +11,16 @@ use std::{
 };
 
 use map::World;
+use ui::UI;
 
 mod map;
 mod terminal;
+mod ui;
 
 const WORLD_COLS: usize = 100;
-const WORLD_ROWS: usize = 40;
+const WORLD_ROWS: usize = 35;
+const SCREEN_COLS: usize = WORLD_COLS;
+const SCREEN_ROWS: usize = WORLD_ROWS + 5;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum Direction {
@@ -27,7 +31,7 @@ enum Direction {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-struct Coord {
+pub struct Coord {
     col: usize,
     row: usize,
 }
@@ -101,7 +105,13 @@ fn move_character(app_data: &mut AppData, direction: Direction) {
 fn main() -> Result<()> {
     let _log2 = log2::open("warquest.log").start();
     let map = fs::read_to_string("map.txt").expect("Failed to read map file");
-    terminal::setup(WORLD_COLS, WORLD_ROWS)?;
+    terminal::setup(SCREEN_COLS, SCREEN_ROWS)?;
+    let ui_start = Coord {
+        col: 0,
+        row: WORLD_ROWS,
+    };
+    let ui = UI::new(ui_start, SCREEN_COLS, SCREEN_ROWS - WORLD_ROWS);
+    ui.render()?;
     let mut app_data = AppData::new(map);
     loop {
         render(&app_data)?;
@@ -111,9 +121,11 @@ fn main() -> Result<()> {
                 event::KeyCode::Esc | event::KeyCode::Char('q') => break,
                 event::KeyCode::Up => {
                     move_character(&mut app_data, Direction::North);
+                    ui.print_line("YOU MOVED NORTH")?;
                 }
                 event::KeyCode::Down => {
                     move_character(&mut app_data, Direction::South);
+                    ui.print_line("YOU MOVED SOUTH")?;
                 }
                 event::KeyCode::Left => {
                     move_character(&mut app_data, Direction::West);
