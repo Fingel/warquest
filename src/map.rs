@@ -11,7 +11,7 @@ impl World {
         let tiles = map
             .lines()
             .take(rows)
-            .map(|line| line.chars().take(cols).map(|c| c.into()).collect())
+            .map(|line| line.chars().take(cols).map(Tile::from).collect())
             .collect();
         Self { tiles }
     }
