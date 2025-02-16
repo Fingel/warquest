@@ -1,4 +1,5 @@
 use crate::Coord;
+use crossterm::style::{Color, Stylize};
 use crossterm::{cursor::MoveTo, queue, style::Print};
 use std::collections::VecDeque;
 use std::io::{stdout, Result, Write};
@@ -39,7 +40,7 @@ impl UI {
             queue!(
                 stdout,
                 MoveTo(0, (self.start.row + index) as u16),
-                Print(format!("{:<width$}", message, width = self.cols))
+                Print(format!("{:<width$}", message, width = self.cols).with(Color::White))
             )?;
         }
         stdout.flush()?;
