@@ -23,9 +23,17 @@ impl UI {
         }
     }
 
-    pub fn render(&mut self) -> Result<()> {
-        for _ in 2..self.rows {
-            self.print_line(" ".repeat(self.cols).as_str())?
+    pub fn render(&mut self, layout: String) -> Result<()> {
+        let mut stdout = stdout();
+        for (index, line) in layout.lines().enumerate() {
+            queue!(
+                stdout,
+                MoveTo(0, (self.start.row + index) as u16),
+                Print(format!("{:<width$}", line, width = self.cols).with(Color::White))
+            )?;
+        }
+        for _ in 4..self.rows {
+            self.print_line(" ".repeat(self.cols - 2).as_str())?
         }
         self.print_line("Connected to WarQuest!")?;
         self.print_line("Daily login bonus: 5,000,000,000 WarBucks.")?;
@@ -35,12 +43,15 @@ impl UI {
     pub fn print_line(&mut self, text: &str) -> Result<()> {
         let mut stdout = stdout();
         self.messages.push_front(String::from(text));
-        self.messages.truncate(self.rows);
+        self.messages.truncate(self.rows - 2);
         for (index, message) in self.messages.iter().rev().enumerate() {
             queue!(
                 stdout,
-                MoveTo(0, (self.start.row + index) as u16),
-                Print(format!("{:<width$}", message, width = self.cols).with(Color::White))
+                MoveTo(
+                    (self.start.col + 1) as u16,
+                    (self.start.row + 1 + index) as u16
+                ),
+                Print(format!("{:<width$}", message, width = self.cols - 2).with(Color::White))
             )?;
         }
         stdout.flush()?;

@@ -18,9 +18,9 @@ mod terminal;
 mod ui;
 
 const WORLD_COLS: usize = 100;
-const WORLD_ROWS: usize = 35;
+const WORLD_ROWS: usize = 33;
 const SCREEN_COLS: usize = WORLD_COLS;
-const SCREEN_ROWS: usize = WORLD_ROWS + 5;
+const SCREEN_ROWS: usize = WORLD_ROWS + 7;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum Direction {
@@ -105,13 +105,14 @@ fn move_character(app_data: &mut AppData, direction: Direction) {
 fn main() -> Result<()> {
     let _log2 = log2::open("warquest.log").start();
     let map = fs::read_to_string("map.txt").expect("Failed to read map file");
+    let ui_layout = fs::read_to_string("ui.txt").expect("Failed to read map file");
     terminal::setup(SCREEN_COLS, SCREEN_ROWS)?;
     let ui_start = Coord {
         col: 0,
         row: WORLD_ROWS,
     };
     let mut ui = UI::new(ui_start, SCREEN_COLS, SCREEN_ROWS - WORLD_ROWS);
-    ui.render()?;
+    ui.render(ui_layout)?;
     let mut app_data = AppData::new(map);
     loop {
         render(&app_data)?;
