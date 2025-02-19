@@ -114,6 +114,8 @@ fn main() -> Result<()> {
     let mut ui = UI::new(ui_start, SCREEN_COLS, SCREEN_ROWS - WORLD_ROWS);
     ui.render(ui_layout)?;
     let mut app_data = AppData::new(map);
+    ui.system.print("Connected to WarQuest!")?;
+    ui.system.print("Daily login bonus: 1,000,000 WarBux!")?;
     loop {
         render(&app_data)?;
         let event = event::read()?;
@@ -122,19 +124,19 @@ fn main() -> Result<()> {
                 event::KeyCode::Esc | event::KeyCode::Char('q') => break,
                 event::KeyCode::Up => {
                     move_character(&mut app_data, Direction::North);
-                    ui.print_line("YOU PRESSED ⇧")?;
+                    ui.combat.print("YOU PRESSED ⇧")?;
                 }
                 event::KeyCode::Down => {
                     move_character(&mut app_data, Direction::South);
-                    ui.print_line("YOU PRESSED ⇩")?;
+                    ui.combat.print("YOU PRESSED ⇩")?;
                 }
                 event::KeyCode::Left => {
                     move_character(&mut app_data, Direction::West);
-                    ui.print_line("YOU PRESSED ⇦")?;
+                    ui.combat.print("YOU PRESSED ⇦")?;
                 }
                 event::KeyCode::Right => {
                     move_character(&mut app_data, Direction::East);
-                    ui.print_line("YOU PRESSED ⇨")?;
+                    ui.combat.print("YOU PRESSED ⇨")?;
                 }
                 _ => {}
             }
