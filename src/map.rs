@@ -52,7 +52,7 @@ impl Tile {
     }
     fn floor() -> Tile {
         Tile {
-            color: Color::White,
+            color: Color::Grey,
             solid: false,
             display: '.',
         }
@@ -80,7 +80,7 @@ impl Tile {
     }
     fn mountain() -> Tile {
         Tile {
-            color: Color::DarkGrey,
+            color: Color::DarkMagenta,
             solid: true,
             display: '^',
         }
