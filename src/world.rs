@@ -3,15 +3,17 @@ use crossterm::{
     queue,
     style::{Color, Colors, Print, SetColors},
 };
+use log2::*;
 use std::fmt;
 use std::io::{Result, Stdout};
 
-use crate::Coord;
+use crate::{Coord, Direction};
 
 #[derive(Debug)]
 pub struct World {
     entities: Vec<Entity>,
     tiles: Vec<Vec<Tile>>,
+    player: Entity,
 }
 
 impl World {
@@ -34,8 +36,42 @@ impl World {
                 row: rows / 2,
             },
         };
-        let entities = vec![player];
-        Self { entities, tiles }
+
+        let kobold = Entity {
+            kind: EntityType::Enemy,
+            rune: Rune {
+                display: '&',
+                color: Color::Red,
+                background: Color::Black,
+            },
+            position: Coord { col: 60, row: 22 },
+        };
+
+        let marshall = Entity {
+            kind: EntityType::Npc,
+            rune: Rune {
+                display: '$',
+                color: Color::Blue,
+                background: Color::Black,
+            },
+            position: Coord { col: 60, row: 25 },
+        };
+
+        let entities = vec![kobold, marshall];
+        Self {
+            entities,
+            tiles,
+            player,
+        }
+    }
+
+    pub fn move_player(&mut self, direction: Direction) {
+        debug!("{:?} - {:?}", self.player.kind, self.player.position);
+        let new_position = self.player.position + direction;
+
+        if self.can_move_to(new_position.col, new_position.row) {
+            self.player.position = new_position;
+        }
     }
 
     pub fn can_move_to(&self, col: usize, row: usize) -> bool {
@@ -62,6 +98,19 @@ impl World {
                 Print(&entity.rune),
             )?;
         }
+        queue!(
+            stdout,
+            MoveTo(
+                self.player.position.col as u16,
+                self.player.position.row as u16
+            ),
+            SetColors(Colors::new(
+                self.player.rune.color,
+                self.player.rune.background
+            )),
+            Print(&self.player.rune),
+        )?;
+
         Ok(())
     }
 }
@@ -168,6 +217,19 @@ impl fmt::Display for Tile {
     }
 }
 
+#[derive(Debug, PartialEq)]
+struct Rune {
+    color: Color,
+    background: Color,
+    display: char,
+}
+
+impl fmt::Display for Rune {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.display)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -190,17 +252,61 @@ mod tests {
         let world = World::new(1, 2, map);
         assert_eq!(world.tiles, tiles);
     }
-}
 
-#[derive(Debug, PartialEq)]
-struct Rune {
-    color: Color,
-    background: Color,
-    display: char,
-}
+    #[test]
+    fn test_move_character() {
+        let map = ".....\n\
+                   .....\n\
+                   ..@..\n\
+                   .....\n\
+                   .....";
+        let mut world = World::new(5, 5, map.to_string());
+        world.player.position = Coord { col: 2, row: 2 };
+        world.move_player(Direction::North);
+        assert_eq!(world.player.position, Coord { col: 2, row: 1 });
+        world.move_player(Direction::South);
+        assert_eq!(world.player.position, Coord { col: 2, row: 2 });
+        world.move_player(Direction::West);
+        assert_eq!(world.player.position, Coord { col: 1, row: 2 });
+        world.move_player(Direction::East);
+        assert_eq!(world.player.position, Coord { col: 2, row: 2 });
+    }
 
-impl fmt::Display for Rune {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.display)
+    #[test]
+    fn test_move_character_bounded() {
+        let map = "@....\n\
+                   .....\n\
+                   .....\n\
+                   .....\n\
+                   .....";
+        let mut world = World::new(5, 5, map.to_string());
+        world.player.position = Coord { col: 0, row: 0 };
+        world.move_player(Direction::North);
+        assert_eq!(world.player.position, Coord { col: 0, row: 0 });
+        world.move_player(Direction::South);
+        assert_eq!(world.player.position, Coord { col: 0, row: 1 });
+        world.move_player(Direction::West);
+        assert_eq!(world.player.position, Coord { col: 0, row: 1 });
+        world.move_player(Direction::East);
+        assert_eq!(world.player.position, Coord { col: 1, row: 1 });
+    }
+
+    #[test]
+    fn test_can_move_character_walls() {
+        let map = ".....\n\
+                   #####\n\
+                   .#@..\n\
+                   .....\n\
+                   .....";
+        let mut world = World::new(5, 5, map.to_string());
+        world.move_player(Direction::North);
+        world.player.position = Coord { col: 2, row: 2 };
+        assert_eq!(world.player.position, Coord { col: 2, row: 2 });
+        world.move_player(Direction::West);
+        assert_eq!(world.player.position, Coord { col: 2, row: 2 });
+        world.move_player(Direction::South);
+        assert_eq!(world.player.position, Coord { col: 2, row: 3 });
+        world.move_player(Direction::East);
+        assert_eq!(world.player.position, Coord { col: 3, row: 3 });
     }
 }

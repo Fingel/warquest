@@ -1,9 +1,7 @@
 use crossterm::{
-    cursor::MoveTo,
     event, queue,
-    style::{Color, Colors, Print, SetColors, Stylize},
+    style::{Color, Colors, SetColors},
 };
-use log2::*;
 use std::{
     fs,
     io::{Result, Write, stdout},
@@ -64,43 +62,22 @@ impl Add<Direction> for Coord {
 #[derive(Debug)]
 struct AppData {
     world: World,
-    player_coord: Coord,
 }
 
 impl AppData {
     fn new(map: String) -> Self {
         Self {
             world: World::new(WORLD_ROWS, WORLD_COLS, map),
-            player_coord: Coord {
-                col: WORLD_COLS / 2,
-                row: WORLD_ROWS / 2,
-            },
         }
     }
 }
 
 fn render(app_data: &AppData) -> Result<()> {
-    debug!("{:?}", app_data.player_coord);
     let mut stdout = stdout();
     app_data.world.render(&mut stdout)?;
-    queue!(
-        stdout,
-        MoveTo(
-            app_data.player_coord.col as u16,
-            app_data.player_coord.row as u16
-        ),
-        Print("@".with(Color::White))
-    )?;
     queue!(stdout, SetColors(Colors::new(Color::White, Color::Black)))?;
     stdout.flush()?;
     Ok(())
-}
-
-fn move_character(app_data: &mut AppData, direction: Direction) {
-    let new_coord = app_data.player_coord + direction;
-    if app_data.world.can_move_to(new_coord.col, new_coord.row) {
-        app_data.player_coord = app_data.player_coord + direction;
-    }
 }
 
 fn main() -> Result<()> {
@@ -124,19 +101,19 @@ fn main() -> Result<()> {
             match event.code {
                 event::KeyCode::Esc | event::KeyCode::Char('q') => break,
                 event::KeyCode::Up => {
-                    move_character(&mut app_data, Direction::North);
+                    app_data.world.move_player(Direction::North);
                     ui.combat.print("YOU PRESSED ⇧")?;
                 }
                 event::KeyCode::Down => {
-                    move_character(&mut app_data, Direction::South);
+                    app_data.world.move_player(Direction::South);
                     ui.combat.print("YOU PRESSED ⇩")?;
                 }
                 event::KeyCode::Left => {
-                    move_character(&mut app_data, Direction::West);
+                    app_data.world.move_player(Direction::West);
                     ui.combat.print("YOU PRESSED ⇦")?;
                 }
                 event::KeyCode::Right => {
-                    move_character(&mut app_data, Direction::East);
+                    app_data.world.move_player(Direction::East);
                     ui.combat.print("YOU PRESSED ⇨")?;
                 }
                 _ => {}
@@ -147,75 +124,4 @@ fn main() -> Result<()> {
     // Be a good citizen, cleanup
     terminal::cleanup()?;
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_move_character() {
-        let map = ".....\n\
-                   .....\n\
-                   ..@..\n\
-                   .....\n\
-                   .....";
-        let world = World::new(5, 5, map.to_string());
-        let mut app_data = AppData {
-            player_coord: Coord { col: 2, row: 2 },
-            world,
-        };
-        move_character(&mut app_data, Direction::North);
-        assert_eq!(app_data.player_coord, Coord { col: 2, row: 1 });
-        move_character(&mut app_data, Direction::South);
-        assert_eq!(app_data.player_coord, Coord { col: 2, row: 2 });
-        move_character(&mut app_data, Direction::West);
-        assert_eq!(app_data.player_coord, Coord { col: 1, row: 2 });
-        move_character(&mut app_data, Direction::East);
-        assert_eq!(app_data.player_coord, Coord { col: 2, row: 2 });
-    }
-
-    #[test]
-    fn test_move_character_bounded() {
-        let map = "@....\n\
-                   .....\n\
-                   .....\n\
-                   .....\n\
-                   .....";
-        let world = World::new(5, 5, map.to_string());
-        let mut app_data = AppData {
-            player_coord: Coord { col: 0, row: 0 },
-            world,
-        };
-        move_character(&mut app_data, Direction::North);
-        assert_eq!(app_data.player_coord, Coord { col: 0, row: 0 });
-        move_character(&mut app_data, Direction::South);
-        assert_eq!(app_data.player_coord, Coord { col: 0, row: 1 });
-        move_character(&mut app_data, Direction::West);
-        assert_eq!(app_data.player_coord, Coord { col: 0, row: 1 });
-        move_character(&mut app_data, Direction::East);
-        assert_eq!(app_data.player_coord, Coord { col: 1, row: 1 });
-    }
-
-    #[test]
-    fn test_can_move_character_walls() {
-        let map = ".....\n\
-                   #####\n\
-                   .#@..\n\
-                   .....\n\
-                   .....";
-        let world = World::new(5, 5, map.to_string());
-        let mut app_data = AppData {
-            player_coord: Coord { col: 2, row: 2 },
-            world,
-        };
-        move_character(&mut app_data, Direction::North);
-        assert_eq!(app_data.player_coord, Coord { col: 2, row: 2 });
-        move_character(&mut app_data, Direction::West);
-        assert_eq!(app_data.player_coord, Coord { col: 2, row: 2 });
-        move_character(&mut app_data, Direction::South);
-        assert_eq!(app_data.player_coord, Coord { col: 2, row: 3 });
-        move_character(&mut app_data, Direction::East);
-        assert_eq!(app_data.player_coord, Coord { col: 3, row: 3 });
-    }
 }
