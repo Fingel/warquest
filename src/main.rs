@@ -1,7 +1,7 @@
 use crossterm::{
     cursor::MoveTo,
     event, queue,
-    style::{Color, Print, Stylize},
+    style::{Color, Colors, Print, SetColors, Stylize},
 };
 use log2::*;
 use std::{
@@ -91,6 +91,7 @@ fn render(app_data: &AppData) -> Result<()> {
         ),
         Print("@".with(Color::White))
     )?;
+    queue!(stdout, SetColors(Colors::new(Color::White, Color::Black)))?;
     stdout.flush()?;
     Ok(())
 }
