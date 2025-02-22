@@ -6,16 +6,16 @@ use crossterm::{
 use log2::*;
 use std::{
     fs,
-    io::{stdout, Result, Write},
+    io::{Result, Write, stdout},
     ops::Add,
 };
 
-use map::World;
 use ui::UI;
+use world::World;
 
-mod map;
 mod terminal;
 mod ui;
+mod world;
 
 const WORLD_COLS: usize = 100;
 const WORLD_ROWS: usize = 33;

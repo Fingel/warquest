@@ -32,3 +32,6 @@ TODO:
   - [ ] Better error handling with terminal cleanup
   - [x] Reserved Space for UI
   - [x] Print messages to screen in the UI
+  - [ ] Entities
+  - [ ] Entities on map
+  - [ ] Distance between entities
