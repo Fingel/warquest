@@ -25,6 +25,7 @@ impl World {
             .collect();
 
         let player = Entity {
+            name: String::from("An Adventurer"),
             kind: EntityType::Player,
             rune: Rune {
                 display: '@',
@@ -38,6 +39,7 @@ impl World {
         };
 
         let kobold = Entity {
+            name: String::from("Kobold"),
             kind: EntityType::Enemy,
             rune: Rune {
                 display: '&',
@@ -48,6 +50,7 @@ impl World {
         };
 
         let marshall = Entity {
+            name: String::from("Marshall McDoogal"),
             kind: EntityType::Npc,
             rune: Rune {
                 display: '$',
@@ -72,6 +75,13 @@ impl World {
         if self.can_move_to(new_position.col, new_position.row) {
             self.player.position = new_position;
         }
+    }
+
+    pub fn closest_entity(&self) -> &Entity {
+        self.entities
+            .iter()
+            .min_by_key(|e| e.position.distance(&self.player.position))
+            .unwrap_or(&self.player)
     }
 
     pub fn can_move_to(&self, col: usize, row: usize) -> bool {
@@ -123,10 +133,21 @@ enum EntityType {
 }
 
 #[derive(Debug)]
-struct Entity {
+pub struct Entity {
+    pub name: String,
     kind: EntityType,
     position: Coord,
     rune: Rune,
+}
+
+impl Entity {
+    pub fn hail(&self) -> &'static str {
+        match self.kind {
+            EntityType::Player => "Hello!",
+            EntityType::Enemy => "Grrr!",
+            EntityType::Npc => "Hi there!",
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]

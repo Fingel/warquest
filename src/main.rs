@@ -34,6 +34,14 @@ pub struct Coord {
     row: usize,
 }
 
+impl Coord {
+    pub fn distance(&self, other: &Coord) -> usize {
+        let dx = self.col.abs_diff(other.col);
+        let dy = self.row.abs_diff(other.row);
+        dx + dy
+    }
+}
+
 impl Add<Direction> for Coord {
     type Output = Coord;
 
@@ -115,6 +123,12 @@ fn main() -> Result<()> {
                 event::KeyCode::Right => {
                     app_data.world.move_player(Direction::East);
                     ui.combat.print("YOU PRESSED ⇨")?;
+                }
+                event::KeyCode::Char('h') => {
+                    let entity = app_data.world.closest_entity();
+                    let response = entity.hail();
+                    ui.combat
+                        .print(format!("{} says: {}", entity.name, response).as_str())?;
                 }
                 _ => {}
             }
